@@ -12,7 +12,13 @@ namespace RedisChatTask
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            builder.Services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>();
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+          ConnectionMultiplexer.Connect(new ConfigurationOptions
+          {
+              EndPoints = { { "", 0 } },
+              User = "",
+              Password = ""
+          }));
             builder.Services.AddScoped<IRedisService, RedisService>();
             var app = builder.Build();
 

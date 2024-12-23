@@ -1,8 +1,63 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model RedisChatTask.Models.ChatViewModel
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+
+
+<div style="display: flex; gap: 20px;">
+
+    <div style="width: 30%; border-right: 1px solid #ccc; padding-right: 10px;">
+        <h3>Channels</h3>
+        <ul>
+            @if (Model.Channels != null && Model.Channels.Any())
+            {
+                foreach (var channel in Model.Channels)
+                {
+                    <li>
+                        <form method="post" asp-action="SelectChannel">
+                            <input type="hidden" name="channelName" value="@channel" />
+                            <button type="submit" style="background:none; border:none; color:blue; text-decoration:underline;">@channel</button>
+                        </form>
+                    </li>
+                }
+            }
+            else
+            {
+                <p>no channel.</p>
+            }
+        </ul>
+        <form method="post" asp-action="CreateChannel">
+            <input type="text" name="channelName" placeholder="New Channel" required />
+            <button type="submit">CreateChannel</button>
+        </form>
+    </div>
+
+ 
+    <div style="width: 70%;">
+        @if (!string.IsNullOrEmpty(Model.SelectedChannelName))
+        {
+            <h3>@Model.SelectedChannelName</h3>
+            <div style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+                @if (Model.SelectedChannelMessages != null && Model.SelectedChannelMessages.Any())
+                {
+                    foreach (var message in Model.SelectedChannelMessages)
+                    {
+                        <p>@message</p>
+                    }
+                }
+                else
+                {
+                    <p>no message</p>
+                }
+            </div>
+            <form method="post" asp-action="SendMessage">
+                <input type="hidden" name="channelName" value="@Model.SelectedChannelName" />
+                <input type="text" name="message" placeholder="Message" required style="width: 80%;" />
+                <button type="submit">Send</button>
+            </form>
+        }
+        else
+        {
+            <p>choose any  channel.</p>
+        }
+    </div>
 </div>

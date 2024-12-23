@@ -9,28 +9,61 @@ namespace RedisChatTask.Controllers
     {
         private readonly IRedisService _redisService;
 
-        public HomeController(IRedisService redisService)
+        public HomeController(IRedisService redisChannelService)
         {
-            _redisService = redisService;
+            _redisService = redisChannelService;
         }
-
-
 
         [HttpGet]
-        public async Task<IActionResult> Index(string selectedChannel = " ")
+        public async Task<IActionResult> Index(string selectedChannel = null)
         {
-            var channels = _redisService.GetAllChannelAsync();
-            if (!string.IsNullOrWhiteSpace(selectedChannel))
+            var viewModel = new ChatViewModel
             {
-                var messages = await _redisService.GetChannelMessageAsync(selectedChannel);
-                var vm = new ChatViewModel
-                {
-                    SelectedChannelMessages = messages,
-                    SelectedChannelName = selectedChannel,
-                };
-                return View(vm);
+                Channels = await _redisService.GetAllChannelAsync()
+            };
+
+            if (!string.IsNullOrEmpty(selectedChannel))
+            {
+                viewModel.SelectedChannelName = selectedChannel;
+                viewModel.SelectedChannelMessages = await _redisService.GetChannelMessageAsync(selectedChannel);
             }
-            return View();
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateChannel(string channelName)
+        {
+            if (!string.IsNullOrWhiteSpace(channelName))
+            {
+                await _redisService.CreateChannelAsync(channelName);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SelectChannel(string channelName)
+        {
+            if (!string.IsNullOrWhiteSpace(channelName))
+            {
+                return RedirectToAction("Index", new { selectedChannel = channelName });
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendMessage(string channelName, string message)
+        {
+            if (!string.IsNullOrWhiteSpace(channelName) && !string.IsNullOrWhiteSpace(message))
+            {
+                await _redisService.AddMessageToChannelAsync(channelName, message);
+            }
+
+            return RedirectToAction("Index", new { selectedChannel = channelName });
         }
     }
+
 }
+
